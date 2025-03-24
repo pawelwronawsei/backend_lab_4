@@ -1,5 +1,6 @@
 using ApplicationCore.Interfaces.AdminService;
 using ApplicationCore.Models.QuizAggregate;
+using AutoMapper;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
 using WebApi.Dto;
@@ -9,10 +10,12 @@ namespace WebApi.Controllers;
 public class ApiQuizAdminController : Controller
 {
     private readonly IQuizAdminService _service;
+    private readonly IMapper _mapper;
     
-    public ApiQuizAdminController(IQuizAdminService service)
+    public ApiQuizAdminController(IQuizAdminService service, IMapper mapper)
     {
         _service = service;
+        _mapper = mapper;
     }
     
     //GET
@@ -25,13 +28,9 @@ public class ApiQuizAdminController : Controller
     [HttpPost]
     public ActionResult<object> AddQuiz(LinkGenerator link, NewQuizDto dto)
     {
-        var quiz = _service.AddQuiz(new Quiz() {Title = dto.Title});
+        var quiz = _service.AddQuiz(_mapper.Map<Quiz>(dto));
         return Created(
-            link.GetPathByAction(
-                HttpContext, 
-                nameof(GetQuiz),         // nazwa metody kontrolera zwracająca quiz
-                null,                    // kontroler, null oznacza bieżący
-                new { quiId = quiz.Id }),// parametry ścieżki, id utworzonego quiz
+            link.GetPathByAction(HttpContext, nameof(GetQuiz), null, new { quiId = quiz.Id }),
             quiz
         );
     }
